@@ -1,4 +1,5 @@
 {{- $root := . -}}
+{{- $tlsRootCA := include "yugabyte.tlsRootCA" (dict "root" $root) | fromYaml -}}
 ---
 {{- if $root.Values.tls.certManager.enabled }}
 {{- if $root.Values.tls.certManager.bootstrapSelfsigned }}
@@ -67,7 +68,7 @@ metadata:
     {{- include "yugabyte.labels" $root | indent 4 }}
 type: Opaque
 data:
-  ca.crt: {{ $root.Values.tls.rootCA.cert }}
+  ca.crt: {{ $tlsRootCA.cert }}
   {{/* if useExistingServerCertificate is true, then tls.crt and tls.key will not be set */}}
   {{if $root.Values.tls.certManager.useExistingServerCertificate -}}
   tls.crt: ""

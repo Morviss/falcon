@@ -234,6 +234,29 @@ It uses a base multiplier of 1000 for 'G' units and 1024 for 'Gi' units.
 {{- end -}}
 
 {{/*
+Resolve TLS root CA data from either inline values or an existing Secret.
+*/}}
+{{- define "yugabyte.tlsRootCA" -}}
+{{- $root := .root -}}
+{{- $secretName := $root.Values.tls.rootCA.existingSecret | default "" -}}
+{{- $cert := $root.Values.tls.rootCA.cert | default "" -}}
+{{- $key := $root.Values.tls.rootCA.key | default "" -}}
+{{- if $secretName -}}
+{{- $secret := lookup "v1" "Secret" $root.Release.Namespace $secretName | default dict -}}
+{{- $secretData := get $secret "data" | default dict -}}
+{{- $certData := get $secretData ($root.Values.tls.rootCA.certKey | default "ca.crt") | default "" -}}
+{{- $keyData := get $secretData ($root.Values.tls.rootCA.keyKey | default "ca.key") | default "" -}}
+{{- if not (empty $certData) -}}
+{{- $cert = $certData -}}
+{{- end -}}
+{{- if not (empty $keyData) -}}
+{{- $key = $keyData -}}
+{{- end -}}
+{{- end -}}
+{{- dict "cert" $cert "key" $key | toYaml -}}
+{{- end -}}
+
+{{/*
 Create chart name and version as used by the chart label.
 */}}
 {{- define "yugabyte.chart" -}}
